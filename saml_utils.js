@@ -473,9 +473,9 @@ SAML.prototype.validateResponse = function(samlResponse, relayState, callback) {
                             }
                             if (Meteor.settings.debug) {
                                 console.log("Name: " + attributes[i]);
-                                console.log(`Adding attrinute from SAML response to profile:` + attributes[i].getAttribute('Name') + " = " + value.textContent);
+                                console.log(`Adding attrinute from SAML response to profile:` + attributes[i].getAttribute('Name') + " = " + value);
                             }
-                            profile[attributes[i].getAttribute('Name')] = value.textContent;
+                            profile[attributes[i].getAttribute('Name')] = value;
 
                         }
                     } else {
