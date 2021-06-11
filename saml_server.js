@@ -116,10 +116,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
         if (Meteor.settings.debug) {
             console.log("Looking for user with " + localFindStructure + "=" + loginResult.profile.nameID);
         }
-        var user = Meteor.users.findOne({
-            //profile[Meteor.settings.saml[0].localProfileMatchAttribute]: loginResult.profile.nameID
-            [localFindStructure]: loginResult.profile.nameID
-        });
+        var user = APP.accounts.getUserByEmail(loginResult.profile.nameID);
 
         if (!user) {
             if (Meteor.settings.saml[0].dynamicProfile) {
@@ -133,11 +130,8 @@ Accounts.registerLoginHandler(function(loginRequest) {
                     console.log("Identity handle: " + profileOrEmail + " = " + JSON.stringify(profileOrEmailValue) + " || username = " + loginResult.profile.nameID);
                     console.log("Create user: " + JSON.stringify(newUser));
                 }
-                Accounts.createUser({
-                    //email: loginResult.profile.email,
-                    password: "",
-                    username: loginResult.profile.nameID,
-                    [profileOrEmail]:  profileOrEmailValue});
+                APP.accounts.createUser(newUser);
+
                 console.log("#################");
                 if (Meteor.settings.debug) {
                     console.log("Trying to find user");
