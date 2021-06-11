@@ -120,32 +120,13 @@ Accounts.registerLoginHandler(function(loginRequest) {
 
         if (!user) {
             if (Meteor.settings.saml[0].dynamicProfile) {
-                var newUser = {
-                    password: "",
-                    username: loginResult.profile.nameID,
-                    [profileOrEmail]:  profileOrEmailValue
-                }
-                if (Meteor.settings.debug) {
-                    console.log("User not found. Will dynamically create one with '" + Meteor.settings.saml[0].localProfileMatchAttribute + "' = " + loginResult.profile[Meteor.settings.saml[0].localProfileMatchAttribute]);
-                    console.log("Identity handle: " + profileOrEmail + " = " + JSON.stringify(profileOrEmailValue) + " || username = " + loginResult.profile.nameID);
-                    console.log("Create user: " + JSON.stringify(newUser));
-                }
-                APP.accounts.createUser(newUser);
-
-                console.log("#################");
-                if (Meteor.settings.debug) {
-                    console.log("Trying to find user");
-                }
-                user = Meteor.users.findOne({
-                    "username": loginResult.profile.nameID
-                });
                 // update user profile w attrs from SAML Attr Satement
                 //Meteor.user.update(user, )
-                if (Meteor.settings.debug) {
-                    console.log("Profile for attributes: " + JSON.stringify(loginResult.profile));
-                    console.log("Created User: " + JSON.stringify(user));
-                }
                 var attributeNames = Meteor.settings.saml[0].attributesSAML;
+                if (Meteor.settings.debug){
+                  console.log("Attribute names in settings:" + attributeNames);
+                }
+
                 var meteorProfile = {};
                 if (attributeNames) {
                   attributeNames.forEach(function(attribute) {
@@ -155,11 +136,34 @@ Accounts.registerLoginHandler(function(loginRequest) {
                 if (Meteor.settings.debug) {
                     console.log("Profile for Meteor: " + JSON.stringify(meteorProfile));
                 }
-                Meteor.users.update(user, {
-                    $set: {
-                        "profile": updateProfile(user.profile, meteorProfile)
-                    }
+
+                var newUser = {
+                    email: loginResult.profile.nameID,
+                    profile: meteorProfile,
+                }
+                if (Meteor.settings.debug) {
+                    console.log("User not found. Will dynamically create one.");
+                    console.log("Identity handle: " + profileOrEmail + " = " + JSON.stringify(profileOrEmailValue) + " || username = " + loginResult.profile.nameID);
+                    console.log("Create user: " + JSON.stringify(newUser));
+                }
+                APP.accounts.createUser(newUser);
+
+                console.log("#################");
+
+                if (Meteor.settings.debug) {
+                    console.log("Trying to find user");
+                }
+                user = Meteor.users.findOne({
+                    [localFindStructure]: loginResult.profile.nameID
                 });
+
+                if (Meteor.settings.debug) {
+                    console.log("loginResult:");
+                    console.log(loginResult);
+                    console.log("Profile for attributes: " + JSON.stringify(loginResult.profile));
+                    console.log("Created User: " + JSON.stringify(user));
+                }
+
                 if (Meteor.settings.debug) {
                     console.log("Created new user");
                 }
