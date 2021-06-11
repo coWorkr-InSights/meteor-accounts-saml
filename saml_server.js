@@ -95,13 +95,9 @@ Accounts.registerLoginHandler(function(loginRequest) {
         var localFindStructure;
         var nameIDFormat;
         // Default nameIDFormat is emailAddress
-        if (!(Meteor.settings.saml[0].identifierFormat) || (Meteor.settings.saml[0].identifierFormat == "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress")) {
-          nameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress";
-        } else {
-          nameIDFormat = Meteor.settings.saml[0].identifierFormat;
-        }
-
-        if (nameIDFormat == "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress" ) {
+        nameIDFormat = Meteor.settings.saml[0].identifierFormat || "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+        default_identifier_format_regex = /urn:oasis:names:tc:SAML:[12].[01]:nameid-format:emailAddress/
+        if (default_identifier_format_regex.test(nameIDFormat)) {
             // If nameID Format is emailAdress, we should not force 'email' as localProfileMatchAttribute
             localProfileMatchAttribute = "email";
             localFindStructure = "emails.address";
