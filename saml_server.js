@@ -116,7 +116,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
         if (Meteor.settings.debug) {
             console.log("Looking for user with " + localFindStructure + "=" + loginResult.profile.nameID);
         }
-        var user = Accounts.findUserByEmail((loginResult.profile.nameID);
+        var user = Accounts.findUserByEmail(loginResult.profile.nameID);
 
         if (!user) {
             if (Meteor.settings.saml[0].dynamicProfile) {
