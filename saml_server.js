@@ -116,7 +116,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
         if (Meteor.settings.debug) {
             console.log("Looking for user with " + localFindStructure + "=" + loginResult.profile.nameID);
         }
-        var user = APP.accounts.getUserByEmail(loginResult.profile.nameID);
+        var user = Accounts.findUserByEmail((loginResult.profile.nameID);
 
         if (!user) {
             if (Meteor.settings.saml[0].dynamicProfile) {
@@ -146,7 +146,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
                     console.log("Identity handle: " + profileOrEmail + " = " + JSON.stringify(profileOrEmailValue) + " || username = " + loginResult.profile.nameID);
                     console.log("Create user: " + JSON.stringify(newUser));
                 }
-                APP.accounts.createUser(newUser);
+                Accounts.createUser(newUser);
 
                 console.log("#################");
 

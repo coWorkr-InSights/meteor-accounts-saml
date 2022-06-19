@@ -6,7 +6,7 @@
 const zlib = Npm.require('zlib');
 const xml2js = Npm.require('xml2js');
 const xmlCrypto = Npm.require('xml-crypto');
-const crypto = Npm.require('crypto');
+//const crypto = Npm.require('crypto');
 const xmldom = Npm.require('xmldom');
 const querystring = Npm.require('querystring');
 const xmlbuilder = Npm.require('xmlbuilder');
@@ -291,7 +291,7 @@ SAML.prototype.validateSignature = function(xml, cert) {
 
 SAML.prototype.validateLogoutResponse = function(samlResponse, callback) {
     const self = this;
-    const compressedSAMLResponse = new Buffer(samlResponse, 'base64');
+    const compressedSAMLResponse = Buffer.from(samlResponse, 'base64');
     zlib.inflateRaw(compressedSAMLResponse, function(err, decoded) {
         if (err) {
             if (Meteor.settings.debug) {
@@ -340,7 +340,7 @@ SAML.prototype.validateLogoutResponse = function(samlResponse, callback) {
 
 SAML.prototype.validateResponse = function(samlResponse, relayState, callback) {
     const self = this;
-    const xml = new Buffer(samlResponse, 'base64').toString('utf8');
+    const xml = new Buffer.from(samlResponse, 'base64').toString('utf8');
     // We currently use RelayState to save SAML provider
     if (Meteor.settings.debug) {
         console.log(`Validating response with relay state: ${ xml }`);

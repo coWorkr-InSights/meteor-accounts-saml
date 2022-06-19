@@ -1,17 +1,16 @@
 Package.describe({
-    name:"steffo:meteor-accounts-saml",
+    name:"coworkr:meteor-accounts-saml",
     summary: "SAML Login (SP) for Meteor. Works with OpenAM, OpenIDP and provides Single Logout.",
-    version: "0.0.18",
-    git: "https://github.com/steffow/meteor-accounts-saml.git"
+    version: "0.1.0",
+    git: "https://github.com/coWorkr-InSights/meteor-accounts-saml.git"
 });
 
-Package.on_use(function (api) {
-    api.versionsFrom('1.4.4.1');
+Package.onUse(function (api) {
     api.use(['routepolicy','webapp','underscore', 'service-configuration'], 'server');
     api.use(['http','accounts-base','random'], ['client', 'server']);
 
-    api.add_files(['saml_server.js','saml_utils.js'], 'server');
-	api.add_files('saml_client.js', 'client');
+    api.addFiles(['saml_server.js','saml_utils.js'], 'server');
+	api.addFiles('saml_client.js', 'client');
 });
 
 Package.onTest((api) => {
