@@ -65,7 +65,7 @@ SAML.prototype.generateInstant = function() {
 };
 
 SAML.prototype.signRequest = function(xml) {
-    const signer = crypto.createSign('RSA-SHA1');
+    const signer = crypto.createSign('RSA-SHA256');
     signer.update(xml);
     return signer.sign(this.options.privateKey, 'base64');
 };
@@ -190,7 +190,7 @@ SAML.prototype.requestToUrl = function(request, operation, callback) {
         };
 
         if (self.options.privateCert) {
-            samlRequest.SigAlg = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1';
+            samlRequest.SigAlg = 'http://www.w3.org/2000/09/xmldsig#rsa-sha256';
             samlRequest.Signature = self.signRequest(querystring.stringify(samlRequest));
         }
 
