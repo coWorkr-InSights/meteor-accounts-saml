@@ -84,9 +84,12 @@ Accounts.registerLoginHandler(function(loginRequest) {
     if (!loginRequest.saml || !loginRequest.credentialToken) {
         return undefined;
     }
+    if (Meteor.settings.debug) {
+        console.log("SAML:loginRequest :", loginRequest);
+    }
     var loginResult = Accounts.saml.retrieveCredential(loginRequest.credentialToken);
     if (Meteor.settings.debug) {
-        console.log("RESULT :" + JSON.stringify(loginResult));
+        console.log("SAML:loginResult :" + JSON.stringify(loginResult));
     }
 
     if (loginResult && loginResult.profile && loginResult.profile.nameID) {
@@ -383,6 +386,7 @@ middleware = function(req, res, next) {
                 _saml = new SAML(service);
                 if (Meteor.settings.debug) {
                   console.log("Service: " + JSON.stringify(service));
+                  console.log("SAMLResponse", req.body.SAMLResponse);
                 };
                 Accounts.saml.RelayState = req.body.RelayState;
                 _saml.validateResponse(req.body.SAMLResponse, req.body.RelayState, function(err, profile, loggedOut) {
