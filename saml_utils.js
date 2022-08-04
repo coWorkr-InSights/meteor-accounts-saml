@@ -316,7 +316,7 @@ SAML.prototype.validateLogoutResponse = function(samlResponse, callback) {
                 if (response) {
 
                     // TBD. Check if this msg corresponds to one we sent
-										var inResponseTo;
+					var inResponseTo;
                     try {
                         inResponseTo = response.getAttribute('InResponseTo');
                         if (Meteor.settings.debug) {
@@ -355,9 +355,15 @@ SAML.prototype.validateResponse = function(samlResponse, relayState, callback) {
     if (Meteor.settings.debug) {
         console.log(`Validating response with relay state: ${ xml }`);
     }
+
     const parser = new xml2js.Parser({
         explicitRoot: true
     });
+    if (Meteor.settings.debug) {
+        parser.parseString(xml, function (err, result) {
+            console.dir("validateResponse xml to json", result);
+        });
+    }
 
     const doc = new xmldom.DOMParser().parseFromString(xml, 'text/xml');
 
@@ -388,7 +394,7 @@ SAML.prototype.validateResponse = function(samlResponse, relayState, callback) {
             const response = doc.getElementsByTagNameNS('urn:oasis:names:tc:SAML:2.0:protocol', 'Response')[0];
             if (response) {
                 if (Meteor.settings.debug) {
-                    console.log('Got response');
+                    console.log('Got response', response);
                 }
 
                 var assertion = response.getElementsByTagNameNS('urn:oasis:names:tc:SAML:2.0:assertion', 'Assertion')[0];

@@ -282,10 +282,19 @@ middleware = function(req, res, next) {
     // Make sure to catch any exceptions because otherwise we'd crash
     // the runner
     try {
+
         var samlObject = samlUrlToObject(req.url);
         if (!samlObject || !samlObject.serviceName) {
             next();
             return;
+        }
+
+        if (Meteor.settings.debug) {
+            console.log("SAML middleware url:", req.url);
+        }
+
+        if (Meteor.settings.debug) {
+            console.log("SAML middleware samlObject:", samlObject);
         }
 
         if (!samlObject.actionName)
@@ -387,6 +396,7 @@ middleware = function(req, res, next) {
                 if (Meteor.settings.debug) {
                   console.log("Service: " + JSON.stringify(service));
                   console.log("SAMLResponse", req.body.SAMLResponse);
+                  console.log("SAMLResponse", req.body.RelayState);
                 };
                 Accounts.saml.RelayState = req.body.RelayState;
                 _saml.validateResponse(req.body.SAMLResponse, req.body.RelayState, function(err, profile, loggedOut) {
@@ -428,9 +438,6 @@ var samlUrlToObject = function(url) {
         serviceName: splitPath[3],
         credentialToken: splitPath[4]
     };
-    if (Meteor.settings.debug) {
-        console.log(result);
-    }
     return result;
 };
 
@@ -439,8 +446,8 @@ var closePopup = function(res, err) {
         'Content-Type': 'text/html'
     });
     var content =
-        '<html><head><script>window.close()</script></head><body><H1>Verified</H1></body></html>';
+        '<html><head><script>window.close()</script></head><body><H3>Verified</H3></body></html>';
     if (err)
-        content = '<html><body><h2>Sorry, an annoying error occured</h2><div>' + err + '</div><a onclick="window.close();">Close Window</a></body></html>';
+        content = '<html><body><h3>Sorry, an error occured</h3><div>' + err + '</div><a onclick="window.close();">Close Window</a></body></html>';
     res.end(content, 'utf-8');
 };
