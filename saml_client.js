@@ -77,7 +77,7 @@ var openCenteredPopup = function (url, width, height) {
 
 Meteor.loginWithSaml = function (options, callback) {
     options = options || {};
-    var credentialToken = Random.id();
+    var credentialToken = 'id-' + Random.id();
     options.credentialToken = credentialToken;
 
     Accounts.saml.initiateLogin(options, function (error, result) {
