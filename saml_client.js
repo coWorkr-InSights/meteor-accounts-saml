@@ -27,6 +27,7 @@ Accounts.saml.initiateLogin = function (options, callback, dimensions) {
         }
 
         if (popupClosed) {
+            console.log("Accounts.saml.initiateLogin: popupClosed", popup.closed);
             clearInterval(checkPopupOpen);
             callback(options.credentialToken);
         }
