@@ -485,8 +485,8 @@ SAML.prototype.validateResponse = function(samlResponse, relayState, callback) {
                                 value = values[0].textContent;
                             } else {
                                 value = [];
-                                for (var attributeValue of values) {
-                                    value.push(attributeValue.textContent);
+                                for (let j = 0; j < values.length; j++) {
+                                    value.push(values[j].textContent);
                                 }
                             }
                             if (Meteor.settings.debug) {
