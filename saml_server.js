@@ -389,6 +389,9 @@ middleware = function(req, res, next) {
                 service.id = samlObject.credentialToken;
                 _saml = new SAML(service);
                 _saml.getAuthorizeUrl(req, function(err, url) {
+                    if (DEBUG) {
+                        console.log("SAML:middleware: Send -> Location:",url);
+                    }
                     if (err)
                         throw new Error("Unable to generate authorize url");
                     res.writeHead(302, {

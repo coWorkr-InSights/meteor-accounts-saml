@@ -4,11 +4,12 @@ if (!Accounts.saml) {
     Accounts.saml = {};
 }
 
+
 Accounts.saml.initiateLogin = function (options, callback, dimensions) {
     // default dimensions that worked well for facebook and google
     var popup = openCenteredPopup(
-            Meteor.absoluteUrl("_saml/authorize/" + options.provider + "/" + options.credentialToken), (dimensions && dimensions.width) || 650, (dimensions && dimensions.height) || 500
-        );
+        Meteor.absoluteUrl("_saml/authorize/" + options.provider + "/" + options.credentialToken), (dimensions && dimensions.width) || 650, (dimensions && dimensions.height) || 500
+    );
 
     var checkPopupOpen = setInterval(function () {
         try {
@@ -21,6 +22,7 @@ Accounts.saml.initiateLogin = function (options, callback, dimensions) {
             // the popup closes too quickly?) throws "SCRIPT16386: No such
             // interface supported" when trying to read 'popup.closed'. Try
             // again in 100ms.
+            console.log("Accounts.saml.initiateLogin error", e);
             return;
         }
 
@@ -75,6 +77,7 @@ var openCenteredPopup = function (url, width, height) {
     return newwindow;
 };
 
+
 Meteor.loginWithSaml = function (options, callback) {
     options = options || {};
     var credentialToken = 'id-' + Random.id();
@@ -99,6 +102,5 @@ Meteor.logoutWithSaml = function (options, callback) {
         //window.location.replace(Meteor.absoluteUrl("_saml/sloRedirect/" + options.provider + "/?redirect="+result));
         window.location.replace(Meteor.absoluteUrl("_saml/sloRedirect/" + options.provider + "/?redirect="+encodeURIComponent(result)));
     });
-
-
 };
+
