@@ -1,3 +1,6 @@
+
+const DEBUG = true;
+
 if (!Accounts.saml) {
     Accounts.saml = {};
 }
@@ -84,12 +87,12 @@ Accounts.registerLoginHandler(function(loginRequest) {
     if (!loginRequest.saml || !loginRequest.credentialToken) {
         return undefined;
     }
-    if (Meteor.settings.debug) {
-        console.log("SAML:loginRequest :", loginRequest);
+    if (DEBUG) {
+        console.log("SAML:registerLoginHandler:loginRequest :", loginRequest);
     }
     var loginResult = Accounts.saml.retrieveCredential(loginRequest.credentialToken);
-    if (Meteor.settings.debug) {
-        console.log("SAML:loginResult :" + JSON.stringify(loginResult));
+    if (DEBUG) {
+        console.log("SAML:registerLoginHandler:loginResult :" + JSON.stringify(loginResult));
     }
 
     if (loginResult && loginResult.profile && loginResult.profile.nameID) {
@@ -116,8 +119,8 @@ Accounts.registerLoginHandler(function(loginRequest) {
                };
                localFindStructure = 'profile.' + Meteor.settings.saml[0].localProfileMatchAttribute;
         }
-        if (Meteor.settings.debug) {
-            console.log("Looking for user with " + localFindStructure + "=" + loginResult.profile.nameID);
+        if (DEBUG) {
+            console.log("SAML:registerLoginHandler: Looking for user with " + localFindStructure + "=" + loginResult.profile.nameID);
         }
         var user = Accounts.findUserByEmail(loginResult.profile.nameID);
 
@@ -289,11 +292,11 @@ middleware = function(req, res, next) {
             return;
         }
 
-        if (Meteor.settings.debug) {
+        if (DEBUG) {
             console.log("SAML middleware url:", req.url);
         }
 
-        if (Meteor.settings.debug) {
+        if (DEBUG) {
             console.log("SAML middleware samlObject:", samlObject);
         }
 
@@ -379,6 +382,9 @@ middleware = function(req, res, next) {
                 res.end();
                 break;
             case "authorize":
+                if (DEBUG) {
+                    console.log("SAML: middleware: Getting authorization URL for", service.provider);
+                }
                 service.callbackUrl = Meteor.absoluteUrl("_saml/validate/" + service.provider);
                 service.id = samlObject.credentialToken;
                 _saml = new SAML(service);
@@ -393,10 +399,10 @@ middleware = function(req, res, next) {
                 break;
             case "validate":
                 _saml = new SAML(service);
-                if (Meteor.settings.debug) {
-                  console.log("Service: " + JSON.stringify(service));
-                  console.log("SAMLResponse", req.body.SAMLResponse);
-                  console.log("SAMLResponse", req.body.RelayState);
+                if (DEBUG) {
+                  console.log("SAML:middleware:validate:Service: " + JSON.stringify(service));
+                  console.log("SAML:middleware:validate:SAMLResponse", req.body.SAMLResponse);
+                  console.log("SSAML:middleware:validate:AMLResponse", req.body.RelayState);
                 };
                 Accounts.saml.RelayState = req.body.RelayState;
                 _saml.validateResponse(req.body.SAMLResponse, req.body.RelayState, function(err, profile, loggedOut) {

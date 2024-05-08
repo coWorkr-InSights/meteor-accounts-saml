@@ -15,6 +15,8 @@ const array2string = Npm.require('arraybuffer-to-string');
 // var prefixMatch = new RegExp(/(?!xmlns)^.*:/);
 
 
+const DEBUG = true;
+
 SAML = function(options) {
     this.options = this.initialize(options);
 };
@@ -148,9 +150,9 @@ SAML.prototype.generateLogoutRequest = function(options) {
     request += `>${ options.nameID }</saml:NameID>` +
         `<samlp:SessionIndex xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">${ options.sessionIndex }</samlp:SessionIndex>` +
         '</samlp:LogoutRequest>';
-    if (Meteor.settings.debug) {
+    if (DEBUG) {
         console.log('------- SAML Logout request -----------');
-        console.log(request);
+        console.log('SAML:',request);
     }
     return {
         request,
@@ -165,8 +167,8 @@ SAML.prototype.requestToUrl = function(request, operation, callback) {
             return callback(err);
         }
 
-        if (Meteor.settings.debug) {
-            console.log("samlRequest:", buffer.toString());
+        if (DEBUG) {
+            console.log("SAML: samlRequest:", buffer.toString());
         }
 
         const base64 = buffer.toString('base64');
@@ -206,8 +208,8 @@ SAML.prototype.requestToUrl = function(request, operation, callback) {
 
         target += querystring.stringify(samlRequest);
 
-        if (Meteor.settings.debug) {
-            console.log(`requestToUrl: ${ target }`);
+        if (DEBUG) {
+            console.log(`SAML: requestToUrl: ${ target }`);
         }
         if (operation === 'logout') {
             // in case of logout we want to be redirected back to the Meteor app.
@@ -304,8 +306,8 @@ SAML.prototype.validateLogoutResponse = function(samlResponse, callback) {
     const compressedSAMLResponse = Buffer.from(samlResponse, 'base64');
     zlib.inflateRaw(compressedSAMLResponse, function(err, decoded) {
         if (err) {
-            if (Meteor.settings.debug) {
-                console.log("Error while inflating." + err);
+            if (DEBUG) {
+                console.log("SAML:validateLogoutResponse:Error while inflating." + err);
             }
         } else {
             console.log("construvting new DOM parser: " + Object.prototype.toString.call(decoded));
@@ -320,13 +322,13 @@ SAML.prototype.validateLogoutResponse = function(samlResponse, callback) {
                     try {
                         inResponseTo = response.getAttribute('InResponseTo');
                         if (Meteor.settings.debug) {
-                            console.log(`In Response to: ${ inResponseTo }`);
+                            console.log(`SAML: In Response to: ${ inResponseTo }`);
                         }
                     } catch (e) {
-                        if (Meteor.settings.debug) {
-														console.log("Caught error: " + e);
+                        if (DEBUG) {
+														console.log("SAML: Caught error: " + e);
 														const msg = doc.getElementsByTagNameNS('urn:oasis:names:tc:SAML:2.0:protocol', 'StatusMessage');
-                            console.log("Unexpected msg from IDP. Does your session still exist at IDP? Idp returned: \n" + msg);
+                            console.log("SAML: Unexpected msg from IDP. Does your session still exist at IDP? Idp returned: \n" + msg);
                         }
                     }
 
@@ -369,27 +371,27 @@ SAML.prototype.validateResponse = function(samlResponse, relayState, callback) {
 
     if (doc) {
 
-        if (Meteor.settings.debug) {
-            console.log('Verify status');
+        if (DEBUG) {
+            console.log('SAML:validateResponse: Verify status');
         }
         let statusValidateObj = self.validateStatus(doc);
 
         if (statusValidateObj.success) {
-            if (Meteor.settings.debug) {
-                console.log('Status ok');
+            if (DEBUG) {
+                console.log('SAML:validateResponse: Status ok');
             }
             // Verify signature
-            if (Meteor.settings.debug) {
-                console.log('Verify signature');
+            if (DEBUG) {
+                console.log('SAML:validateResponse: Verify signature');
             }
             if (self.options.cert && !self.validateSignature(xml, self.options.cert)) {
-                if (Meteor.settings.debug) {
-                    console.log('Signature WRONG');
+                if (DEBUG) {
+                    console.log('SAML:validateResponse: Signature WRONG');
                 }
                 return callback(new Error('Invalid signature'), null, false);
             }
-            if (Meteor.settings.debug) {
-                console.log('Signature OK');
+            if (DEBUG) {
+                console.log('SAML:validateResponse: Signature OK');
             }
             const response = doc.getElementsByTagNameNS('urn:oasis:names:tc:SAML:2.0:protocol', 'Response')[0];
             if (response) {
@@ -457,13 +459,13 @@ SAML.prototype.validateResponse = function(samlResponse, relayState, callback) {
                         if (Meteor.settings.debug) {
                             console.log(`Session Index: ${ profile.sessionIndex }`);
                         }
-                    } else if (Meteor.settings.debug) {
-                        console.log('No Session Index Found');
+                    } else if (DEBUG) {
+                        console.log('SAML:validateResponse:No Session Index Found');
                     }
 
 
-                } else if (Meteor.settings.debug) {
-                    console.log('No AuthN Statement found');
+                } else if (DEBUG) {
+                    console.log('SAML:validateResponse:No AuthN Statement found');
                 }
 
                 const attributeStatement = assertion.getElementsByTagNameNS('urn:oasis:names:tc:SAML:2.0:assertion', 'AttributeStatement')[0];
