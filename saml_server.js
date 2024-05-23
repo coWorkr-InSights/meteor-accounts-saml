@@ -394,6 +394,9 @@ middleware = function(req, res, next) {
                     }
                     if (err)
                         throw new Error("Unable to generate authorize url");
+                    if (DEBUG) {
+                        console.log("SAML: authorize url:", url);
+                    }
                     res.writeHead(302, {
                         'Location': url
                     });
