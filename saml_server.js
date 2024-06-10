@@ -309,6 +309,7 @@ middleware = function(req, res, next) {
 
         // Skip everything if there's no service set by the saml middleware
         if (!service)
+            console.log("SAML: Error, cannot find SAML service" + samlObject.serviceName);
             throw new Error("Unexpected SAML service " + samlObject.serviceName);
         switch (samlObject.actionName) {
             case "metadata":
