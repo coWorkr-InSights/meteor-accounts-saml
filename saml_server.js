@@ -307,6 +307,10 @@ middleware = function(req, res, next) {
             return samlSetting.provider === samlObject.serviceName;
         });
 
+        if (DEBUG) {
+            console.log("SAML from settings:", samlObject.serviceName, service);
+        }
+
         // Skip everything if there's no service set by the saml middleware
         if (!service)
             console.log("SAML: Error, cannot find SAML service" + samlObject.serviceName);
