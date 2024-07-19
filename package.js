@@ -1,7 +1,7 @@
 Package.describe({
     name:"coworkr:meteor-accounts-saml",
     summary: "SAML Login (SP) for Meteor. Works with OpenAM, OpenIDP and provides Single Logout.",
-    version: "0.1.4",
+    version: "0.1.5",
     git: "https://github.com/coWorkr-InSights/meteor-accounts-saml.git"
 });
 
