@@ -5,7 +5,7 @@ if (!Accounts.saml) {
     Accounts.saml = {};
 }
 
-var Fiber = Npm.require('fibers');
+
 //var connect = Npm.require('connect');
 var bodyParser = Npm.require('body-parser')
 RoutePolicy.declare('/_saml/', 'network');
@@ -24,7 +24,7 @@ var updateProfile = function(profile, newValues) {
 }
 
 Meteor.methods({
-    samlLogout: function(provider) {
+    samlLogout: async function(provider) {
         // Make sure the user is logged in before initiate SAML SLO
         if (!Meteor.userId()) {
             throw new Meteor.Error("not-authorized");
@@ -38,7 +38,7 @@ Meteor.methods({
             console.log("Logout request from " + JSON.stringify(providerConfig));
         }
         // This query should respect upcoming array of SAML logins
-        var user = Meteor.users.findOne({
+        var user = await Meteor.users.findOneAsync({
             _id: Meteor.userId(),
             "services.saml.provider": provider
         }, {
@@ -64,7 +64,7 @@ Meteor.methods({
         // request.request: actual XML SAML Request
         // request.id: comminucation id which will be mentioned in the ResponseTo field of SAMLResponse
 
-        Meteor.users.update({
+        await Meteor.users.updateAsync({
             _id: Meteor.userId()
         }, {
             $set: {
@@ -83,7 +83,7 @@ Meteor.methods({
     }
 })
 
-Accounts.registerLoginHandler(function(loginRequest) {
+Accounts.registerLoginHandler(async function(loginRequest) {
     if (!loginRequest.saml || !loginRequest.credentialToken) {
         return undefined;
     }
@@ -122,7 +122,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
         if (DEBUG) {
             console.log("SAML:registerLoginHandler: Looking for user with " + localFindStructure + "=" + loginResult.profile.nameID);
         }
-        var user = Accounts.findUserByEmail(loginResult.profile.nameID);
+        var user = await Accounts.findUserByEmail(loginResult.profile.nameID);
 
         if (!user) {
             if (Meteor.settings.saml[0].dynamicProfile) {
@@ -152,14 +152,14 @@ Accounts.registerLoginHandler(function(loginRequest) {
                     console.log("Identity handle: " + profileOrEmail + " = " + JSON.stringify(profileOrEmailValue) + " || username = " + loginResult.profile.nameID);
                     console.log("Create user: " + JSON.stringify(newUser));
                 }
-                Accounts.createUser(newUser);
+                await Accounts.createUserAsync(newUser);
 
                 console.log("#################");
 
                 if (Meteor.settings.debug) {
-                    console.log("Trying to find user");
+                    console.log("Trying to find user", [localFindStructure], loginResult.profile.nameID);
                 }
-                user = Meteor.users.findOne({
+                user = await Meteor.users.findOneAsync({
                     [localFindStructure]: loginResult.profile.nameID
                 });
 
@@ -194,7 +194,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
                 var newProfile = updateProfile(user.profile, meteorProfile);
                 console.log("New Profile: " + JSON.stringify(newProfile));
             }
-            Meteor.users.update({
+            await Meteor.users.updateAsync({
                 _id: user._id
             }, {
                 $set: {
@@ -207,7 +207,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
 
         //creating the token and adding to the user
         var stampedToken = Accounts._generateStampedLoginToken();
-        Meteor.users.update(user, {
+        await Meteor.users.updateAsync(user, {
             $push: {
                 'services.resume.loginTokens': stampedToken
             }
@@ -222,7 +222,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
             nameIDNameQualifier: loginResult.profile.nameIDNameQualifier
         };
 
-        Meteor.users.update({
+        await Meteor.users.updateAsync({
             _id: user._id
         }, {
             $set: {
@@ -232,7 +232,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
         });
 
         if (loginResult.profile.uid) {
-            Meteor.users.update({
+            await Meteor.users.updateAsync({
                 _id: user._id
             }, {
                 $set: {
@@ -273,15 +273,13 @@ Accounts.saml.retrieveCredential = function(credentialToken) {
 // Listen to incoming SAML http requests
 WebApp.connectHandlers.use(bodyParser.urlencoded({
     extended: true
-})).use(function(req, res, next) {
-    // Need to create a Fiber since we're using synchronous http calls and nothing
-    // else is wrapping this in a fiber automatically
-    Fiber(function() {
-        middleware(req, res, next);
-    }).run();
+})).use(async function(req, res, next) {
+
+    await middleware(req, res, next);
+   
 });
 
-middleware = function(req, res, next) {
+middleware = async function(req, res, next) {
     // Make sure to catch any exceptions because otherwise we'd crash
     // the runner
     try {
@@ -332,27 +330,28 @@ middleware = function(req, res, next) {
                     console.log("Handling call to 'logout' endpoint." + req.query.SAMLResponse);
                 }
                 _saml = new SAML(service);
-                _saml.validateLogoutResponse(req.query.SAMLResponse, function(err, result) {
+                _saml.validateLogoutResponse(req.query.SAMLResponse, async function(err, result) {
                     if (!err) {
-                        var logOutUser = function(inResponseTo) {
+
+                        var logOutUser = async function(inResponseTo) {
                             if (Meteor.settings.debug) {
                                 console.log("Logging Out user via inResponseTo " + inResponseTo);
                             }
-                            var loggedOutUser = Meteor.users.find({
+                            var loggedOutUser = await Meteor.users.findOneAsync({
                                 'services.saml.inResponseTo': inResponseTo
-                            }).fetch();
+                            });
                             if (loggedOutUser.length == 1) {
                                 if (Meteor.settings.debug) {
                                     console.log("Found user " + loggedOutUser[0]._id);
                                 }
-                                Meteor.users.update({
+                                await Meteor.users.updateAsync({
                                     _id: loggedOutUser[0]._id
                                 }, {
                                     $set: {
                                         "services.resume.loginTokens": []
                                     }
                                 });
-                                Meteor.users.update({
+                                await Meteor.users.updateAsync({
                                     _id: loggedOutUser[0]._id
                                 }, {
                                     $unset: {
@@ -364,10 +363,7 @@ middleware = function(req, res, next) {
                             }
                         }
 
-                        Fiber(function() {
-                            logOutUser(result);
-                        }).run();
-
+                        await logOutUser(result);
 
                         res.writeHead(302, {
                             'Location': req.query.RelayState
